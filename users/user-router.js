@@ -1,11 +1,12 @@
 const express = require('express');
 
 const db = require('../data/db-config.js');
+const Users = require('./user-model.js');
 
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  db('users')
+  Users.all()
   .then(users => {
     res.json(users);
   })
@@ -17,10 +18,8 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   const { id } = req.params;
 
-  db('users').where({ id })
-  .then(users => {
-    const user = users[0];
-
+  Users.getById(id)
+  .then(user => {
     if (user) {
       res.json(user);
     } else {
@@ -35,9 +34,9 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   const userData = req.body;
 
-  db('users').insert(userData)
-  .then(ids => {
-    res.status(201).json({ created: ids[0] });
+  Users.create(userData)
+  .then(user => {
+    res.status(201).json({ data: user });
   })
   .catch(err => {
     res.status(500).json({ message: 'Failed to create new user' });
@@ -48,10 +47,10 @@ router.put('/:id', (req, res) => {
   const { id } = req.params;
   const changes = req.body;
 
-  db('users').where({ id }).update(changes)
-  .then(count => {
-    if (count) {
-      res.json({ update: count });
+  Users.update(id, changes)
+  .then(updated => {
+    if (updated) {
+      res.json({ data: updated });
     } else {
       res.status(404).json({ message: 'Could not find user with given id' });
     }
